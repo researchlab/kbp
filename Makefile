@@ -8,6 +8,8 @@ PORT?=8000
 GOOS=linux
 GOARCH?=amd64
 
+CONTAINER_IMAGE?=docker.io/researchboy/${APP}
+
 clean:
 	rm -f ${APP}
 build: clean
@@ -16,7 +18,9 @@ build: clean
 		-X ${PROJECT}/version.Commit=${COMMIT} -X ${PROJECT}/version.BuildTime=${BUILD_TIME}" \
 		-o ${APP}
 container: build
-	docker build -t $(APP):$(RELEASE) .
+	docker build -t $(CONTAINER_IMAGE):$(RELEASE) .
+push: container
+	docker push $(CONTAINER_IMAGE):$(RELEASE)
 run: container 
 	docker stop $(APP)-$(RELEASE) || true && docker rm $(APP)-$(RELEASE) || true 
 	docker run --name ${APP}-${RELEASE} -p ${PORT}:${PORT} --rm \

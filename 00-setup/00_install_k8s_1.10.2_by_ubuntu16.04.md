@@ -360,6 +360,9 @@ root@k8s1:~# kubectl apply -f kubernetes-adminuser.yaml
 获取令牌
 
     root@k8s1:~# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}’)
+		# or
+		root@k8s1:~# kubectl get secret -n kube-system |grep admin-user-token
+		root@k8s1:~# kubectl describe secret/admin-user-token-wq4nw -n kube-system
 
 > 注意新版的k8s dashboard 是装在  kubernetes-dashboard 空间上的， 上面的是装在kube-system 空间上的;
 
@@ -409,3 +412,4 @@ k8s3-ssh|TCP|127.0.0.1|9093|10.0.2.7|22
     scp -P 9091 apt-key.gpg root@127.0.0.1:~/
 
 
+Heapster 负责k8s集群度量数据采集与容器监控

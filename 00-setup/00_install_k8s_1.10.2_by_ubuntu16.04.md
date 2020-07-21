@@ -1,3 +1,6 @@
+
+k8s(1.10.2) 单master集群构建
+
 1.下载ubuntu img
 
     wget -c https://mirrors.tuna.tsinghua.edu.cn/ubuntu-releases/16.04.6/ubuntu-16.04.6-server-amd64.iso
@@ -127,6 +130,17 @@ for imageName in ${images[@]} ; do
  
 done
 ```
+
+方式三:  从Azure镜像站下载
+
+初始化集群前，在所有的节点上手动下载所需的gcr镜像，用`kubeadm config images list`命令可列出所需的镜像列表
+
+gcr镜像被屏蔽，需要通过国内镜像站手动下载，并修改tag。可以选择[Azure镜像站](http://mirror.azure.cn/)下载
+
+[Azure中国提供了gcr.io/k8s.gcr.io镜像代理服务](https://ieevee.com/tech/2019/03/02/azure-gcr-proxy.html)
+
+> 集群节点间不会共享已下载镜像，各自联网下载，因此需要到每个节点手动下载gcr镜像
+
 
 给虚拟机配置宿主机vpn 
 
@@ -401,15 +415,71 @@ k8s3-ssh|TCP|127.0.0.1|9093|10.0.2.7|22
 
 4.Name:NatNetwork  
 
-> 这样设置之后， 即可以使得k8s1,k8s2,k83 之间相互通信， 也可以使得它们与macos 宿主机通信;
+> 这样设置之后， 即可以使得k8s1,k8s2,k83 之间相互通信， 也可以使得它们与mac os 宿主机通信;
 
-从k8s1 scp文件到 macos 宿主机
+从k8s1 scp文件到 mac os 宿主机
 
     scp -P 9091 root@127.0.0.1:~/f.tar .
 
-从macos 宿主机 scp文件到 k8s1 
+从mac os 宿主机 scp文件到 k8s1 
     
     scp -P 9091 apt-key.gpg root@127.0.0.1:~/
 
 
 Heapster 负责k8s集群度量数据采集与容器监控
+
+下载 heapster 包
+
+	git clone https://github.com/kubernetes-retired/heapster.git
+
+相关镜像包
+```
+docker pull anjia0532/heapster-grafana-amd64:v4.4.3
+docker pull anjia0532/heapster-amd64:v1.5.3
+docker pull anjia0532/heapster-influxdb-amd64:v1.3.3
+
+docker tag anjia0532/heapster-grafana-amd64:v4.4.3  k8s.gcr.io/heapster-grafana-amd64:v4.4.3
+docker tag anjia0532/heapster-amd64:v1.5.3     k8s.gcr.io/heapster-amd64:v1.5.3
+docker tag anjia0532/heapster-influxdb-amd64:v1.3.3  k8s.gcr.io/heapster-influxdb-amd64:v1.3.3
+```
+
+选择influxdb 作为heapster的存储后端, 执行如下命令 安装heapster
+```
+root@k8s1:~/heapster/deploy/kube-config# kubectl create -f influxdb
+deployment.extensions "monitoring-grafana" created
+service "monitoring-grafana" created
+serviceaccount "heapster" created
+deployment.extensions "heapster" created
+service "heapster" created
+deployment.extensions "monitoring-influxdb" created
+service "monitoring-influxdb" created
+root@k8s1:~/heapster/deploy/kube-config# pwd
+/root/heapster/deploy/kube-config
+root@k8s1:~/heapster/deploy/kube-config#
+```
+> 注意 ~/heapster/deploy/kube-config/influxdb/yaml文件中image的版本可能不是上述下载的版本， 修改为上述版本即可; 
+
+为heapster服务创建serviceaccount 并绑定角色
+```
+root@k8s1:~/heapster/deploy/kube-config# kubectl create -f rbac/heapster-rbac.yaml
+clusterrolebinding.rbac.authorization.k8s.io "heapster" created
+root@k8s1:~/heapster/deploy/kube-config# pwd
+/root/heapster/deploy/kube-config
+```
+
+安装完成之后 稍微等一段时间， heapster需要时间收集数据,
+```
+root@k8s1:~/heapster/deploy/kube-config# kubectl top node
+error: metrics not available yet
+```
+
+当执行 kubectl top nodes 如下有数据了即表示heapster已经收集到数据了,
+```
+root@k8s1:~/heapster/deploy/kube-config# kubectl top node
+NAME      CPU(cores)   CPU%      MEMORY(bytes)   MEMORY%
+k8s2      28m          2%        447Mi           50%
+k8s3      27m          2%        428Mi           48%
+root@k8s1:~/heapster/deploy/kube-config#
+```
+
+然后可以在dashboard 中也可以看到 相应的cpu ,mem 使用率图表展示了

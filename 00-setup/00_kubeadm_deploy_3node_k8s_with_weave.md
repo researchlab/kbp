@@ -1,7 +1,7 @@
 
-Title: kubeadm k8s(1.10.2) 单master集群构建
+Title: kubeadm部署3节点k8s(v1.10.2)集群(1master, 2node, weave net, ubuntu16.04)
 
-> 1master, 2node, Weave, dashboard
+> 1master, 2node, weave net, k8s-dashboard
 
 > ubuntu-16.04(on virtualbox)
 

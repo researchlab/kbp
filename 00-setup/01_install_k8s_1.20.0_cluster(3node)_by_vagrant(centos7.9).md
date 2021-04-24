@@ -1,6 +1,6 @@
 Title: 用vagrant 搭建一个k8s 三节点集群实践过程
 
-> 1master, 2node, k8s-v.1.20.0, fannel network, centos7.9.2009
+> 1master, 2node, k8s-v.1.20.0, fannel network, k8s-dashboard, centos7.9.2009
   
 - [0.背景说明](#0背景说明)
 - [1.面临问题](#1面临问题)
@@ -43,6 +43,10 @@ step1.	通过vagrant 搭建一个k8s 模板节点 (包含必要的配置和docke
 step2.    基于上述模板快速创建k8s 节点， 通过配置快速完成k8s集群搭建;
 
 ## 3.集群搭建过程
+
+- 集群模板配置及脚本文件: https://github.com/researchlab/dbp/tree/master/vagrant/base/k8s
+
+- 集群配置及脚本文件: https://github.com/researchlab/dbp/tree/master/vagrant/k8s_3node_centos
 ### 3.1 集群模板搭建
 
 #### 3.1.1 初始化虚拟机配置

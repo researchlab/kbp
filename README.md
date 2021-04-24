@@ -7,6 +7,6 @@
    - 从零开始写一个运行在Kubernetes上的服务程序
 
 ### [k8s实践] 02-practices
-   - [kubeadm init流程](02-practises/00_kubeadm_init.md)
+   - [kubeadm init流程](02-practices/00_kubeadm_init.md)
 
 ### [k8s监控] 03-monitoring
